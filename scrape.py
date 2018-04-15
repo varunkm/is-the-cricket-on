@@ -21,10 +21,20 @@ def parse_time(time):
     start = start.replace(second=0)
     delta = timedelta(seconds=(dur*60))
     end = start + delta
-    print()
-    print(start)
-    print(end)
+    return start, end
 
+
+def now(start, end):
+    timenow = datetime.now()
+    return timenow >= start and timenow < end
+
+
+def signal_on():
+    print("on")
+
+
+def signal_off():
+    print("off")
 
 def main(argv):
     URL = 'http://www.skysports.com/watch/tv-guide'
@@ -39,8 +49,11 @@ def main(argv):
         name = str(name.text_content()).strip()
         time = str(time.text_content()).strip()
         if 'Live' in name:
-            parse_time(time)
-
+            start, end = parse_time(time)
+            if now(start, end):
+                signal_on()
+                return
+    signal_off()
     return 0
 
 
