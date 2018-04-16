@@ -3,6 +3,8 @@ from datetime import timedelta
 import requests
 import sys
 from lxml import html
+import RPi.GPIO as GPIO
+pin = 12
 
 
 def parse_time(time):
@@ -30,13 +32,16 @@ def now(start, end):
 
 
 def signal_on():
-    print("on")
+    GPIO.output(pin, GPIO.HIGH)
 
 
 def signal_off():
-    print("off")
+    GPIO.output(pin, GPIO.LOW)
+
 
 def main(argv):
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(pin, GPIO.OUT)
     URL = 'http://www.skysports.com/watch/tv-guide'
     resp = requests.get(URL)
     source = resp.content
