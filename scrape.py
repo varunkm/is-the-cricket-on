@@ -6,8 +6,10 @@ from lxml import html
 import wiringpi as wiringpi
 
 pin = 1
+URL = 'http://www.skysports.com/watch/tv-guide'
 
-
+# time looks like: "(h)h:mm(am/pm), [duration] mins"
+# e.g. 7:30pm, 120 mins or 11:15am, 45 mins
 def parse_time(time):
     t, dur = time.split(', ')
     h, m = t.split(':')
@@ -33,27 +35,26 @@ def now(start, end):
 
 
 def signal_on():
-    print("match on")
     wiringpi.digitalWrite(pin, 1)
 
 
 def signal_off():
-    print("no matches")
     wiringpi.digitalWrite(pin, 0)
 
 
 def main(argv):
     wiringpi.wiringPiSetup()
     wiringpi.pinMode(pin, 1)
-    URL = 'http://www.skysports.com/watch/tv-guide'
+    
     resp = requests.get(URL)
     source = resp.content
     doc = html.document_fromstring(source)
+    
+    # the cricket channel is the fourth row in the tv guide table
+    names = doc.xpath("//div[@class='row-table'][4]/div/a/h4")
+    times = doc.xpath("//div[@class='row-table'][4]/div/a/p")
 
-    p_name = doc.xpath("//div[@class='row-table'][4]/div/a/h4")
-    p_time = doc.xpath("//div[@class='row-table'][4]/div/a/p")
-
-    for name, time in list(zip(p_name, p_time)):
+    for name, time in list(zip(names, times)):
         name = str(name.text_content()).strip()
         time = str(time.text_content()).strip()
         if 'Live' in name:
@@ -62,7 +63,6 @@ def main(argv):
                 signal_on()
                 return
     signal_off()
-    return 0
 
 
 if __name__ == '__main__':
